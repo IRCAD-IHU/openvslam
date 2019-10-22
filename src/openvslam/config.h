@@ -12,6 +12,8 @@ class config {
 public:
     //! Constructor
     explicit config(const std::string& config_file_path);
+    //! Constructor with YAML Node.
+    explicit config(const ::YAML::Node& node);
 
     //! Destructor
     ~config();
