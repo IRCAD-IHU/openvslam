@@ -7,6 +7,10 @@
 
 #include <g2o/core/base_unary_edge.h>
 
+#ifndef M_PI
+#define M_PI 3.141592653589793
+#endif
+
 namespace openvslam {
 namespace optimize {
 namespace g2o {

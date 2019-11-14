@@ -61,7 +61,7 @@ else()
     message(STATUS "OpenMP: DISABLED")
 endif()
 
-if(USE_SSE_ORB)
+if(USE_SSE_ORB AND NOT WIN32)
     message(STATUS "SSE3 for ORB extraction (-msse3): ENABLED")
     target_compile_definitions(${PROJECT_NAME} PUBLIC USE_SSE_ORB)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
@@ -70,12 +70,20 @@ else()
     message(STATUS "SSE3 for ORB extraction (-msse3): DISABLED")
 endif()
 
-if(USE_SSE_FP_MATH)
+if(USE_SSE_FP_MATH AND NOT WIN32)
     message(STATUS "SSE for floating-point operation (-mfpmath=sse): ENABLED")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 else()
     message(STATUS "SSE for floating-point operation (-mfpmath=sse): DISABLED")
+endif()
+
+# Hack to avoid error on multiple definition on Windows (until a better solution is found).
+if(WIN32)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
 endif()
 
 # Check BoW Framework
