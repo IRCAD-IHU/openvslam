@@ -7,6 +7,10 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/core/types.hpp>
 
+#ifndef M_PI
+#define M_PI 3.141592653589793
+#endif
+
 namespace openvslam {
 namespace feature {
 

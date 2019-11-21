@@ -40,7 +40,11 @@ else()
     set(USE_CCACHE OFF)
 endif()
 
+if(NOT WIN32)
+
 set(USE_SANITIZER OFF CACHE BOOL "Enable Address/Memory sanitizer (set env as ASAN_OPTIONS=detect_leaks=1)")
+
+endif()
 
 if(USE_SANITIZER)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
@@ -77,31 +81,33 @@ endif()
 ########################
 # Set compiler options #
 ########################
+if(NOT WIN32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
 
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Og")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Og")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -ffast-math")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -ffast-math")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
+    set(BUILD_WITH_MARCH_NATIVE OFF CACHE BOOL "Enable architecture-aware optimization (-march=native)")
 
-set(BUILD_WITH_MARCH_NATIVE OFF CACHE BOOL "Enable architecture-aware optimization (-march=native)")
+    if(BUILD_WITH_MARCH_NATIVE)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native -march=native")
+      set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -mtune=native -march=native")
+      message(STATUS "Architecture-aware optimization (-march=native): ENABLED")
+    else()
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
+      set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
+      message(STATUS "Architecture-aware optimization (-march=native): DISABLED")
+    endif()
 
-if(BUILD_WITH_MARCH_NATIVE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native -march=native")
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -mtune=native -march=native")
-    message(STATUS "Architecture-aware optimization (-march=native): ENABLED")
-else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
-    message(STATUS "Architecture-aware optimization (-march=native): DISABLED")
+    set(USE_SSE_ORB OFF CACHE BOOL "Enable SSE3 instruction for ORB extraction (-msse3)")
+
+    set(USE_SSE_FP_MATH OFF CACHE BOOL "Enable SSE instruction for floating-point operation (-mfpmath=sse)")
+
 endif()
-
-set(USE_SSE_ORB OFF CACHE BOOL "Enable SSE3 instruction for ORB extraction (-msse3)")
-
-set(USE_SSE_FP_MATH OFF CACHE BOOL "Enable SSE instruction for floating-point operation (-mfpmath=sse)")
 
 
 #################
@@ -112,7 +118,13 @@ set(USE_SSE_FP_MATH OFF CACHE BOOL "Enable SSE instruction for floating-point op
 find_package(Threads REQUIRED)
 
 # OpenMP
-set(USE_OPENMP ON CACHE BOOL "Use OpenMP")
+# Disable OpenMp on Windows since the last version supported is the 2.5.
+# This vesion leads to errors when using signed iterators in parallel for.
+if(WIN32)
+    set(USE_OPENMP OFF CACHE BOOL "Use OpenMP")
+else()
+    set(USE_OPENMP ON CACHE BOOL "Use OpenMP")
+endif()
 
 # OpenCV
 find_package(OpenCV 3.3.1 COMPONENTS core features2d calib3d)
